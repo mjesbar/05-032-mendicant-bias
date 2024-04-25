@@ -15,14 +15,14 @@ def stt(name: str = 'voice', fmt: str = 'mp3') -> str:
     .overwrite_output()
     .run(quiet=True)
   )
-  print("STT: Recording [OK]")
+  print("STT: Recorded [OK]")
   # · Processing the mp3 file to text
   print("STT: Processing...")
-  model = whisper.load_model('base.en')
-  model.cuda()
-  ret = model.transcribe(f'{NAME}.{FMT}', temperature=0.8, language='en')
-  print("STT: Processing [OK]")
-  print("STT: Text:", ret['text'])
+  model = whisper.load_model('tiny.en')
+  model.cpu()
+  ret = model.transcribe(f'{NAME}.{FMT}', temperature=1.0, language='en')
+  print("STT: Processed [OK]")
+  print("STT: ReadText:", ret['text'])
   return ret['text']
 
 
@@ -32,13 +32,21 @@ def ai():
 
 def tts(text):
   print("TTS: Synthesizing...")
-  tts = TTS(model_name="tts_models/en/jenny/jenny",
-            progress_bar=False, gpu=True)
+  tts = (
+    TTS(model_name="tts_models/en/jenny/jenny", progress_bar=False)
+    .to('cuda')
+  )
   tts.tts_to_file(text=text, file_path='synth.wav')
-  print("TTS: Synthesizing [OK]")
+  print("TTS: Synthesized [OK]")
+  print("TTS: Playing...")
   os.system('aplay synth.wav > /dev/null 2>&1')
+  print("TTS: Played [OK]")
+
+
+def main():
+  text = stt()
+  tts(text)
 
 
 if __name__ == '__main__':
-  text = stt()
-  tts(text)
+  main()
